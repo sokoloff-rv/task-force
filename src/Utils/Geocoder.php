@@ -28,7 +28,7 @@ class Geocoder
 
         $locationData = $cache->get($cacheKey);
         if ($locationData === false) {
-            $apiKey = 'e666f398-c983-4bde-8f14-e3fec900592a';
+            $apiKey = Yii::$app->params['yandexGeocoderApiKey'] ?? '';
 
             $client = new Client([
                 'base_uri' => 'https://geocode-maps.yandex.ru/',

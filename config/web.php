@@ -16,8 +16,8 @@ $config = [
     ],
     'components' => [
         'request' => [
-            // !!! insert a secret key in the following (if it is empty) - this is required by cookie validation
-            'cookieValidationKey' => 'PDFT-3yL_4pjUbO6-8MeFOSDr_zUzxgW',
+            // Ключ задаётся в config/params-local.php (см. params-local.php.example)
+            'cookieValidationKey' => $params['cookieValidationKey'],
         ],
         'cache' => [
             'class' => 'yii\caching\FileCache',
@@ -67,8 +67,8 @@ $config = [
             'clients' => [
                 'vkontakte' => [
                     'class' => 'yii\authclient\clients\VKontakte',
-                    'clientId' => '51581820',
-                    'clientSecret' => 'BOv6nUHBuPOMv1u5wklh',
+                    'clientId' => $params['vkClientId'],
+                    'clientSecret' => $params['vkClientSecret'],
                     'returnUrl' => 'https://taskforce.sokoloff-rv.ru/auth/login',
                     'scope' => 'email',
                 ],
