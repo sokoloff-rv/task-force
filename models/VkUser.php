@@ -21,14 +21,27 @@ class VkUser extends Model
     public function createUser($userData)
     {
         $user = new User;
-        $user->name = $userData['first_name'] . ' ' . $userData['last_name'];
-        $user->email = $userData['email'];
-        $birthdayDate = \DateTime::createFromFormat('d.m.Y', $userData['bdate']);
+        $user->name = trim(($userData['first_name'] ?? '') . ' ' . ($userData['last_name'] ?? ''));
+        $user->email = $userData['email'] ?? null;
+
+        $birthdayDate = !empty($userData['birthday'])
+            ? \DateTime::createFromFormat('d.m.Y', $userData['birthday'])
+            : false;
         $user->birthday = $birthdayDate ? $birthdayDate->format('Y-m-d') : null;
-        $user->password = Yii::$app->getSecurity()->generatePasswordHash('password');
-        $user->city_id = City::getIdByName($userData['city']['title']);
+
+        // Вход выполняется по VK ID, поэтому пароль задаётся случайным.
+        $user->password = Yii::$app->getSecurity()->generatePasswordHash(
+            Yii::$app->getSecurity()->generateRandomString()
+        );
+
+        // VK ID не возвращает город в user_info, поэтому он заполняется при наличии.
+        if (!empty($userData['city']['title'])) {
+            $user->city_id = City::getIdByName($userData['city']['title']);
+        }
+
         $user->vk_id = $userData['user_id'];
-        $user->avatar = $userData['photo'];
+        $user->avatar = $userData['avatar'] ?? null;
+        $user->role = User::ROLE_CUSTOMER;
         $user->save(false);
 
         Yii::$app->user->login($user);
