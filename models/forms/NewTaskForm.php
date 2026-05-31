@@ -61,7 +61,9 @@ class NewTaskForm extends Model
             [['deadline'], 'compare', 'compareValue' => date('Y-m-d'),
                 'operator' => '>', 'type' => 'date',
                 'message' => 'Срок выполнения не может быть в прошлом'],
-            [['files'], 'file', 'maxFiles' => 0],
+            [['files'], 'file', 'skipOnEmpty' => true, 'maxFiles' => 5, 'maxSize' => 5 * 1024 * 1024,
+                'extensions' => ['png', 'jpg', 'jpeg', 'gif', 'pdf', 'doc', 'docx', 'xls', 'xlsx', 'txt', 'zip'],
+                'checkExtensionByMimeType' => true],
             [['title', 'description', 'category', 'location', 'budget', 'deadline'], 'filter', 'filter' => 'strip_tags'],
         ];
     }
@@ -102,18 +104,16 @@ class NewTaskForm extends Model
      */
     public function createTask(): int|bool
     {
-        $files = UploadedFile::getInstances($this, 'files');
+        $this->files = UploadedFile::getInstances($this, 'files');
 
         if ($this->validate()) {
             $newTask = $this->newTask();
             $newTask->save(false);
-            if ($files) {
-                foreach ($files as $file) {
-                    $newFileName = uniqid('upload') . '.' . $file->getExtension();
-                    $file->saveAs('@webroot/uploads/' . $newFileName);
-                    $fileLink = '/uploads/' . $newFileName;
-                    File::saveFile($fileLink, $newTask->id);
-                }
+            foreach ($this->files as $file) {
+                $newFileName = uniqid('upload') . '.' . $file->getExtension();
+                $file->saveAs('@webroot/uploads/' . $newFileName);
+                $fileLink = '/uploads/' . $newFileName;
+                File::saveFile($fileLink, $newTask->id);
             }
             return $newTask->id;
         }
