@@ -72,15 +72,21 @@ class RegistrationForm extends Model
 
     /**
      * Создает и сохраняет нового пользователя на основе данных формы.
+     *
+     * @return bool true, если пользователь успешно создан и авторизован, иначе false.
      */
-    public function createUser()
+    public function createUser(): bool
     {
-        if ($this->validate()) {
-            $this->password = Yii::$app->security->generatePasswordHash($this->password);
-            $user = $this->newUser();
-            if ($user->save(false)) {
-                Yii::$app->user->login($user);
-            }
+        if (!$this->validate()) {
+            return false;
         }
+
+        $this->password = Yii::$app->security->generatePasswordHash($this->password);
+        $user = $this->newUser();
+        if (!$user->save(false)) {
+            return false;
+        }
+
+        return Yii::$app->user->login($user);
     }
 }
