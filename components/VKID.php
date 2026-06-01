@@ -43,12 +43,14 @@ class VKID extends OAuth2
     /**
      * Инициализирует атрибуты пользователя из эндпоинта user_info VK ID.
      *
+     * Токен доступа и идентификатор приложения подставляются в запрос
+     * методом applyAccessTokenToRequest при его отправке.
+     *
      * @return array Массив атрибутов пользователя (содержимое поля "user").
      */
     protected function initUserAttributes()
     {
-        $request = $this->createApiRequest('POST', $this->apiBaseUrl . '/user_info');
-        $response = $this->apiInternal($request, []);
+        $response = $this->api('user_info', 'POST');
 
         return $response['user'] ?? $response;
     }
