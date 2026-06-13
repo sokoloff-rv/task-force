@@ -8,6 +8,7 @@ $db = require __DIR__ . '/test_db.php';
 return [
     'id' => 'basic-tests',
     'basePath' => dirname(__DIR__),
+    'defaultRoute' => 'landing',
     'aliases' => [
         '@bower' => '@vendor/bower-asset',
         '@npm'   => '@vendor/npm-asset',
@@ -25,21 +26,36 @@ return [
         'assetManager' => [
             'basePath' => __DIR__ . '/../web/assets',
         ],
+        'cache' => [
+            'class' => 'yii\caching\ArrayCache',
+        ],
         'urlManager' => [
-            'showScriptName' => true,
+            'enablePrettyUrl' => true,
+            'showScriptName' => false,
+            'rules' => [
+                'tasks/view/<id:\d+>' => 'tasks/view',
+                'users/view/<id:\d+>' => 'users/view',
+                'tasks/index?category=<category:\d+>' => 'tasks/index',
+            ],
         ],
         'user' => [
             'identityClass' => 'app\models\User',
         ],
+        'authClientCollection' => [
+            'class' => 'yii\authclient\Collection',
+            'clients' => [
+                'vkid' => [
+                    'class' => 'app\components\VKID',
+                    'clientId' => 'test-client-id',
+                    'clientSecret' => 'test-client-secret',
+                    'returnUrl' => 'http://localhost/auth/login',
+                    'scope' => 'email',
+                ],
+            ],
+        ],
         'request' => [
             'cookieValidationKey' => 'test',
             'enableCsrfValidation' => false,
-            // but if you absolutely need it set cookie domain to localhost
-            /*
-            'csrfCookie' => [
-                'domain' => 'localhost',
-            ],
-            */
         ],
     ],
     'params' => $params,

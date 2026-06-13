@@ -1,0 +1,49 @@
+name: Tests
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_DATABASE: taskforce_test
+          MYSQL_USER: taskforce_test
+          MYSQL_PASSWORD: taskforce_test
+          MYSQL_ROOT_PASSWORD: root
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h localhost -uroot -proot"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=20
+
+    env:
+      TEST_DB_DSN: mysql:host=127.0.0.1;dbname=taskforce_test
+      TEST_DB_USER: taskforce_test
+      TEST_DB_PASSWORD: taskforce_test
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: intl, pdo_mysql
+          coverage: pcov
+
+      - uses: ramsey/composer-install@v3
+
+      - name: Initialize test database
+        run: bash tests/init-test-db.sh
+
+      - name: Run tests
+        run: composer test
+
+      - name: Generate coverage report
+        run: composer test:coverage

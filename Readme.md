@@ -259,6 +259,47 @@ return [
 - `yandexGeocoderApiKey` и `yandexMapsApiKey` — ключи [HTTP Geocoder API и JavaScript API](https://developer.tech.yandex.ru/services/) в кабинете разработчика Яндекс.Карт;
 - `vkClientId` и `vkClientSecret` — идентификатор и защищённый ключ приложения, созданного в [кабинете VK ID](https://id.vk.com/about/business/go/). Авторизация выполняется по актуальному протоколу VK ID (OAuth 2.1); в настройках приложения VK укажите доверенный redirect URL вида `https://<ваш-домен>/auth/login`.
 
+## Тестирование
+
+В проекте настроены автотесты на [Codeception](https://codeception.com/). Тесты делятся на две группы:
+
+- модульные тесты доменной логики (`tests/unit/src`), ресурсов и компонентов — работают без базы данных;
+- интеграционные тесты моделей, форм и контроллеров (`tests/unit/models`, `tests/unit/controllers`) и functional-тесты HTTP-сценариев (`tests/functional`) — работают с отдельной тестовой базой `taskforce_test` через фикстуры (`tests/fixtures`).
+
+Тестовая база, отдельный пользователь СУБД и его права создаются администратором БД один раз. Логин и пароль тестового пользователя указываются в `config/test_db-local.php` (см. шаблон `config/test_db-local.php.example`); файл исключён из Git.
+
+1. Скопируйте шаблон и впишите учётные данные тестового пользователя:
+
+```bash
+cp config/test_db-local.php.example config/test_db-local.php
+```
+
+2. Загрузите схему таблиц в тестовую базу:
+
+```bash
+bash tests/init-test-db.sh
+```
+
+3. Запустите полный набор тестов:
+
+```bash
+composer test
+```
+
+Обычный запуск завершается ошибкой, если тестовая БД недоступна: это не позволяет CI случайно пропустить интеграционные тесты. Для локального запуска только доступных без БД тестов можно явно разрешить пропуски:
+
+```bash
+TEST_DB_OPTIONAL=1 php vendor/bin/codecept run unit
+```
+
+Для отчёта о покрытии установите Xdebug или PCOV и выполните:
+
+```bash
+composer test:coverage
+```
+
+В GitHub Actions тестовая MySQL создаётся автоматически. Параметры подключения также можно передать через переменные `TEST_DB_DSN`, `TEST_DB_USER` и `TEST_DB_PASSWORD`.
+
 ## Техническое задание
 
 [Посмотреть техническое задание проекта](https://sokoloff-rv.notion.site/Taskforce-a703517be86f4dd2b0562c0602bad50e?pvs=4)

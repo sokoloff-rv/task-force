@@ -3,42 +3,64 @@
 namespace tests\unit\models;
 
 use app\models\User;
+use tests\unit\DbTestCase;
+use Yii;
 
-class UserTest extends \Codeception\Test\Unit
+class UserTest extends DbTestCase
 {
-    public function testFindUserById()
+    protected function _after()
     {
-        verify($user = User::findIdentity(100))->notEmpty();
-        verify($user->username)->equals('admin');
-
-        verify(User::findIdentity(999))->empty();
+        Yii::$app->user->logout();
     }
 
-    public function testFindUserByAccessToken()
+    public function testFindIdentityById()
     {
-        verify($user = User::findIdentityByAccessToken('100-token'))->notEmpty();
-        verify($user->username)->equals('admin');
+        verify($user = User::findIdentity(1))->notEmpty();
+        verify($user->name)->equals('Иван Заказчик');
 
-        verify(User::findIdentityByAccessToken('non-existing'))->empty();        
+        verify(User::findIdentity(99999))->empty();
     }
 
-    public function testFindUserByUsername()
+    public function testFindIdentityByAccessTokenIsNotImplemented()
     {
-        verify($user = User::findByUsername('admin'))->notEmpty();
-        verify(User::findByUsername('not-admin'))->empty();
+        verify(User::findIdentityByAccessToken('any-token'))->null();
     }
 
-    /**
-     * @depends testFindUserByUsername
-     */
-    public function testValidateUser()
+    public function testSessionAuthKeyIsValidated()
     {
-        $user = User::findByUsername('admin');
-        verify($user->validateAuthKey('test100key'))->notEmpty();
-        verify($user->validateAuthKey('test102key'))->empty();
+        $user = User::findIdentity(1);
 
-        verify($user->validatePassword('admin'))->notEmpty();
-        verify($user->validatePassword('123456'))->empty();        
+        verify($user->getAuthKey())->null();
+        verify($user->validateAuthKey(null))->true();
+        verify($user->validateAuthKey('whatever'))->false();
     }
 
+    public function testValidatePassword()
+    {
+        $user = User::findIdentity(3);
+
+        verify($user->validatePassword('demo'))->true();
+        verify($user->validatePassword('wrong-password'))->false();
+    }
+
+    public function testGetIdReturnsPrimaryKey()
+    {
+        $user = User::findIdentity(2);
+
+        verify($user->getId())->equals(2);
+    }
+
+    public function testGetCurrentUserReturnsLoggedInUser()
+    {
+        $user = User::findIdentity(2);
+        Yii::$app->user->login($user);
+
+        verify(User::getCurrentUser()->id)->equals(2);
+    }
+
+    public function testUserStatusReflectsActiveTask()
+    {
+        verify(User::findIdentity(4)->getUserStatus())->equals('Занят');
+        verify(User::findIdentity(2)->getUserStatus())->equals('Открыт для новых заказов');
+    }
 }

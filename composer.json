@@ -49,6 +49,12 @@
         }
     },
     "scripts": {
+        "test": [
+            "php vendor/bin/codecept run"
+        ],
+        "test:coverage": [
+            "php vendor/bin/codecept run --coverage --coverage-text"
+        ],
         "post-install-cmd": [
             "yii\\composer\\Installer::postInstall"
         ],
@@ -82,6 +88,11 @@
     "autoload": {
         "psr-4": {
             "Taskforce\\": "src"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "tests\\": "tests/"
         }
     }
 }
