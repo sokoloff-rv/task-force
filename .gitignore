@@ -26,6 +26,7 @@ composer.lock
 
 # phpunit itself is not needed
 phpunit.phar
+
 # local phpunit config
 /phpunit.xml
 
@@ -45,3 +46,6 @@ public_html
 
 #local secrets
 /config/params-local.php
+
+#backups
+/backups
