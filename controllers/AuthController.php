@@ -22,7 +22,7 @@ class AuthController extends NotSecuredController
     public function actionVk(): \yii\web\Response
     {
         try {
-            $url = Yii::$app->authClientCollection->getClient("vkontakte")->buildAuthUrl();
+            $url = Yii::$app->authClientCollection->getClient("vkid")->buildAuthUrl();
             return Yii::$app->getResponse()->redirect($url);
         } catch (Exception $error) {
             throw new BadRequestHttpException("Ошибка при работе с клиентом авторизации: " . $error->getMessage());
@@ -38,9 +38,11 @@ class AuthController extends NotSecuredController
     public function actionLogin(): \yii\web\Response
     {
         try {
-            $client = Yii::$app->authClientCollection->getClient("vkontakte");
+            $client = Yii::$app->authClientCollection->getClient("vkid");
             $code = Yii::$app->request->get('code');
-            $accessToken = $client->fetchAccessToken($code);
+            // VK ID возвращает device_id на redirect; он обязателен при обмене кода на токен.
+            $deviceId = Yii::$app->request->get('device_id');
+            $accessToken = $client->fetchAccessToken($code, ['device_id' => $deviceId]);
             $userAttributes = $client->getUserAttributes();
 
             $foundUser = User::findOne(['vk_id' => $userAttributes['user_id']]);

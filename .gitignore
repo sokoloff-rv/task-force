@@ -42,3 +42,6 @@ public_html
 
 #bd config
 /config/db.php
+
+#local secrets
+/config/params-local.php

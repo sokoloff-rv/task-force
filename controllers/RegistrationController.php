@@ -13,16 +13,17 @@ class RegistrationController extends NotSecuredController
     /**
      * Обрабатывает запрос на регистрацию нового пользователя.
      *
-     * @return string Результат рендеринга страницы.
+     * @return \yii\web\Response|string Редирект при успешной регистрации или рендер страницы.
      */
-    public function actionIndex(): string
+    public function actionIndex(): \yii\web\Response | string
     {
         $registration = new RegistrationForm();
 
         if (Yii::$app->request->getIsPost()) {
             $registration->load(Yii::$app->request->post());
-            $registration->createUser();
-            Yii::$app->response->redirect(['tasks']);
+            if ($registration->createUser()) {
+                return $this->redirect(['tasks']);
+            }
         }
 
         return $this->render('index', ['registration' => $registration]);

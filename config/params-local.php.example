@@ -1,0 +1,18 @@
+<?php
+
+/**
+ * Шаблон локальных параметров. Скопируйте файл в params-local.php и заполните
+ * значениями своего окружения. Сам params-local.php в Git не попадает.
+ */
+
+return [
+    // Ключ валидации cookie — любая случайная строка. Обязателен.
+    'cookieValidationKey' => '',
+    // Ключ HTTP Geocoder API Яндекс.Карт (используется на сервере).
+    'yandexGeocoderApiKey' => '',
+    // Ключ JavaScript API Яндекс.Карт (используется на клиенте).
+    'yandexMapsApiKey' => '',
+    // Идентификатор и защищённый ключ приложения VK ID.
+    'vkClientId' => '',
+    'vkClientSecret' => '',
+];
