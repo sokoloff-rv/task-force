@@ -57,15 +57,31 @@ class NewTaskForm extends Model
             [['category'], 'exist', 'targetClass' => Category::class, 'targetAttribute' => ['category' => 'id']],
             [['location'], 'app\validators\LocationValidator'],
             ['budget', 'integer', 'min' => 1],
-            [['deadline'], 'date', 'format' => 'php:Y-m-d'],
-            [['deadline'], 'compare', 'compareValue' => date('Y-m-d'),
-                'operator' => '>', 'type' => 'date',
-                'message' => 'Срок выполнения не может быть в прошлом'],
+            [['deadline'], 'validateDeadline'],
             [['files'], 'file', 'skipOnEmpty' => true, 'maxFiles' => 5, 'maxSize' => 5 * 1024 * 1024,
                 'extensions' => ['png', 'jpg', 'jpeg', 'gif', 'pdf', 'doc', 'docx', 'xls', 'xlsx', 'txt', 'zip'],
                 'checkExtensionByMimeType' => true],
             [['title', 'description', 'category', 'location', 'budget', 'deadline'], 'filter', 'filter' => 'strip_tags'],
         ];
+    }
+
+    public function validateDeadline(string $attribute): void
+    {
+        if ($this->$attribute === '') {
+            return;
+        }
+
+        $deadline = \DateTimeImmutable::createFromFormat('!Y-m-d', $this->$attribute);
+        $errors = \DateTimeImmutable::getLastErrors() ?: ['warning_count' => 0, 'error_count' => 0];
+
+        if (!$deadline || $errors['warning_count'] || $errors['error_count']) {
+            $this->addError($attribute, 'Введите корректную дату');
+            return;
+        }
+
+        if ($deadline <= new \DateTimeImmutable('today')) {
+            $this->addError($attribute, 'Срок выполнения не может быть в прошлом');
+        }
     }
 
     /**
