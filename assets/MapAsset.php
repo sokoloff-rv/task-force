@@ -13,6 +13,15 @@ class MapAsset extends AssetBundle
     public $js = [];
 
     /**
+     * Скрипт Яндекс.Карт должен загружаться в <head>, чтобы объект ymaps
+     * был доступен к моменту выполнения inline-скрипта ymaps.ready(init)
+     * в разметке страницы просмотра задания.
+     */
+    public $jsOptions = [
+        'position' => \yii\web\View::POS_HEAD,
+    ];
+
+    /**
      * Подключает скрипт Яндекс.Карт с ключом API из параметров приложения.
      *
      * @return void
