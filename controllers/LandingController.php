@@ -35,7 +35,7 @@ class LandingController extends NotSecuredController
                 $user = $loginForm->getUser();
                 Yii::$app->user->login($user);
 
-                return Yii::$app->response->redirect(['tasks']);
+                return Yii::$app->response->redirect(['/tasks']);
             }
         }
 

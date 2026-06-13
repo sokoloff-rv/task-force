@@ -48,13 +48,13 @@ class AuthController extends NotSecuredController
             $foundUser = User::findOne(['vk_id' => $userAttributes['user_id']]);
             if ($foundUser) {
                 Yii::$app->user->login($foundUser);
-                return Yii::$app->response->redirect(['tasks']);
+                return Yii::$app->response->redirect(['/tasks']);
             }
 
             $vkUser = new VkUser();
             $vkUser->createUser($userAttributes);
 
-            return Yii::$app->response->redirect(['tasks']);
+            return Yii::$app->response->redirect(['/tasks']);
         } catch (Exception $error) {
             throw new BadRequestHttpException("Ошибка при авторизации через ВКонтакте: " . $error->getMessage());
         }
