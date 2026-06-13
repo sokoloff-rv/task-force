@@ -22,7 +22,7 @@ class RegistrationController extends NotSecuredController
         if (Yii::$app->request->getIsPost()) {
             $registration->load(Yii::$app->request->post());
             if ($registration->createUser()) {
-                return $this->redirect(['tasks']);
+                return $this->redirect(['/tasks']);
             }
         }
 
