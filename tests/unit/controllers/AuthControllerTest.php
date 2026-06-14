@@ -23,6 +23,7 @@ class AuthControllerTest extends DbTestCase
     {
         Yii::$app->set('authClientCollection', $this->originalCollection);
         Yii::$app->request->setQueryParams([]);
+        Yii::$app->session->remove('vkRegistration');
         Yii::$app->user->logout();
     }
 
@@ -41,6 +42,22 @@ class AuthControllerTest extends DbTestCase
         verify(Yii::$app->user->id)->equals(2);
         verify($response->headers->get('Location'))->stringEndsWith('/tasks');
         verify($response->headers->get('Location'))->stringNotContainsString('/auth/tasks');
+    }
+
+    public function testNewVkUserWithoutEmailIsRedirectedToCompletionForm(): void
+    {
+        $this->installVkClient([
+            'user_id' => 100,
+            'first_name' => 'Новый',
+            'last_name' => 'VK',
+            'avatar' => str_repeat('a', 300),
+        ]);
+
+        $response = (new AuthController('auth', Yii::$app))->actionLogin();
+
+        verify(User::findOne(['vk_id' => 100]))->empty();
+        verify(Yii::$app->session->get('vkRegistration'))->notEmpty();
+        verify($response->headers->get('Location'))->stringEndsWith('/auth/email');
     }
 
     public function testNewVkUserIsCreatedLoggedInAndRedirectedToTasks(): void

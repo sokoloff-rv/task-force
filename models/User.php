@@ -65,8 +65,10 @@ class User extends \yii\db\ActiveRecord implements IdentityInterface
             [['total_score'], 'number'],
             [['name'], 'string', 'max' => 150],
             [['email', 'password', 'phone', 'telegram'], 'string', 'max' => 100],
-            [['specializations', 'avatar'], 'string', 'max' => 255],
+            [['specializations'], 'string', 'max' => 255],
+            [['avatar'], 'string', 'max' => 1024],
             [['email'], 'unique'],
+            [['vk_id'], 'unique'],
             [['city_id'], 'exist', 'skipOnError' => true, 'targetClass' => City::class, 'targetAttribute' => ['city_id' => 'id']],
         ];
     }

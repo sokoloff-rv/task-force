@@ -16,9 +16,9 @@ class VkUser extends Model
      * Создает нового пользователя на основе данных, полученных из ВКонтакте.
      *
      * @param array $userData Массив с данными пользователя из ВКонтакте.
-     * @return void
+     * @return User
      */
-    public function createUser($userData)
+    public function createUser($userData): User
     {
         $user = new User;
         $user->name = trim(($userData['first_name'] ?? '') . ' ' . ($userData['last_name'] ?? ''));
@@ -42,8 +42,12 @@ class VkUser extends Model
         $user->vk_id = $userData['user_id'];
         $user->avatar = $userData['avatar'] ?? null;
         $user->role = User::ROLE_CUSTOMER;
-        $user->save(false);
+        if (!$user->save()) {
+            throw new \RuntimeException('Не удалось зарегистрировать пользователя через ВКонтакте.');
+        }
 
         Yii::$app->user->login($user);
+
+        return $user;
     }
 }

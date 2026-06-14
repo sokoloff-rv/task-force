@@ -83,4 +83,45 @@ class CriticalFlowsCest
         verify($initializationPosition)->notFalse();
         verify($apiPosition)->lessThan($initializationPosition);
     }
+
+    public function vkRegistrationCanBeCompletedWithEmail(FunctionalTester $I): void
+    {
+        Yii::$app->session->set('vkRegistration', [
+            'user_id' => 777777,
+            'first_name' => 'Новый',
+            'last_name' => 'Пользователь',
+            'avatar' => 'https://example.com/' . str_repeat('a', 300),
+        ]);
+
+        $I->amOnRoute('auth/email');
+        $I->see('Для завершения регистрации укажите свой email.');
+        $I->submitForm('#vk-email-form', [
+            'VkEmailForm[email]' => 'new-vk@example.com',
+        ], 'Завершить регистрацию');
+
+        $I->seeInCurrentUrl('/tasks');
+        $I->seeRecord(User::class, [
+            'email' => 'new-vk@example.com',
+            'vk_id' => 777777,
+            'role' => User::ROLE_CUSTOMER,
+        ]);
+        verify(Yii::$app->session->get('vkRegistration'))->null();
+    }
+
+    public function vkRegistrationRejectsExistingEmail(FunctionalTester $I): void
+    {
+        Yii::$app->session->set('vkRegistration', [
+            'user_id' => 888888,
+            'first_name' => 'Другой',
+            'last_name' => 'Пользователь',
+        ]);
+
+        $I->amOnRoute('auth/email');
+        $I->submitForm('#vk-email-form', [
+            'VkEmailForm[email]' => 'customer@example.com',
+        ], 'Завершить регистрацию');
+
+        $I->see('Этот email уже используется.');
+        $I->dontSeeRecord(User::class, ['vk_id' => 888888]);
+    }
 }

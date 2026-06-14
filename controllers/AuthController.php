@@ -4,6 +4,7 @@ namespace app\controllers;
 
 use app\models\User;
 use app\models\VkUser;
+use app\models\forms\VkEmailForm;
 use Yii;
 use yii\base\Exception;
 use yii\web\BadRequestHttpException;
@@ -13,6 +14,8 @@ use yii\web\BadRequestHttpException;
  */
 class AuthController extends NotSecuredController
 {
+    private const VK_REGISTRATION_SESSION = 'vkRegistration';
+
     /**
      * Метод обрабатывает запрос на авторизацию через ВКонтакте.
      *
@@ -44,19 +47,64 @@ class AuthController extends NotSecuredController
             $deviceId = Yii::$app->request->get('device_id');
             $accessToken = $client->fetchAccessToken($code, ['device_id' => $deviceId]);
             $userAttributes = $client->getUserAttributes();
+            $email = $userAttributes['email'] ?? (method_exists($accessToken, 'getParam') ? $accessToken->getParam('email') : null);
 
             $foundUser = User::findOne(['vk_id' => $userAttributes['user_id']]);
+            if (!$foundUser && $email) {
+                $foundUser = User::findOne(['email' => $email]);
+            }
             if ($foundUser) {
+                if (!$foundUser->vk_id) {
+                    $foundUser->vk_id = $userAttributes['user_id'];
+                    if (!$foundUser->save()) {
+                        throw new \RuntimeException('Не удалось связать аккаунт с ВКонтакте.');
+                    }
+                }
                 Yii::$app->user->login($foundUser);
                 return Yii::$app->response->redirect(['/tasks']);
             }
 
+            if (!$email) {
+                Yii::$app->session->set(self::VK_REGISTRATION_SESSION, [
+                    'user_id' => $userAttributes['user_id'],
+                    'first_name' => $userAttributes['first_name'] ?? '',
+                    'last_name' => $userAttributes['last_name'] ?? '',
+                    'birthday' => $userAttributes['birthday'] ?? null,
+                    'city' => $userAttributes['city'] ?? null,
+                    'avatar' => $userAttributes['avatar'] ?? null,
+                ]);
+
+                return Yii::$app->response->redirect(['/auth/email']);
+            }
+
+            $userAttributes['email'] = $email;
             $vkUser = new VkUser();
             $vkUser->createUser($userAttributes);
 
             return Yii::$app->response->redirect(['/tasks']);
-        } catch (Exception $error) {
-            throw new BadRequestHttpException("Ошибка при авторизации через ВКонтакте: " . $error->getMessage());
+        } catch (\Throwable $error) {
+            Yii::error($error);
+            throw new BadRequestHttpException('Ошибка при авторизации через ВКонтакте.');
         }
+    }
+
+    public function actionEmail(): \yii\web\Response|string
+    {
+        $userAttributes = Yii::$app->session->get(self::VK_REGISTRATION_SESSION);
+        if (!$userAttributes) {
+            return Yii::$app->response->redirect(['/landing']);
+        }
+
+        $form = new VkEmailForm();
+        if ($form->load(Yii::$app->request->post()) && $form->validate()) {
+            $userAttributes['email'] = $form->email;
+            $vkUser = new VkUser();
+            $vkUser->createUser($userAttributes);
+            Yii::$app->session->remove(self::VK_REGISTRATION_SESSION);
+
+            return Yii::$app->response->redirect(['/tasks']);
+        }
+
+        return $this->render('email', ['form' => $form]);
     }
 }
