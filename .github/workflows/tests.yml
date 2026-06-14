@@ -37,7 +37,8 @@ jobs:
           extensions: intl, pdo_mysql
           coverage: pcov
 
-      - uses: ramsey/composer-install@v3
+      - name: Install dependencies
+        run: composer install --prefer-dist --no-interaction --ignore-platform-req=php
 
       - name: Initialize test database
         run: bash tests/init-test-db.sh
