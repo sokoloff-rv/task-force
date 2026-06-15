@@ -304,4 +304,4 @@ composer test:coverage
 
 ## Техническое задание
 
-[Посмотреть техническое задание проекта](https://sokoloff-rv.notion.site/Taskforce-a703517be86f4dd2b0562c0602bad50e?pvs=4)
+[Посмотреть техническое задание проекта](tz.md)
